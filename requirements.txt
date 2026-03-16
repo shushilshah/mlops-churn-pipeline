@@ -11,3 +11,4 @@ pydantic
 joblib
 pytest
 httpx
+huggingface-hub
