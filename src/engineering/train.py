@@ -74,9 +74,10 @@ def setup_mlflow():
     if DAGSHUB_USERNAME and DAGSHUB_TOKEN and DAGSHUB_USERNAME != "your_dagshub_username":
         os.environ["DAGSHUB_TOKEN"] = DAGSHUB_TOKEN
         dagshub.init(
-            repo_owner=DAGSHUB_USERNAME,
-            repo_name=DAGSHUB_REPO,
+            repo_owner=os.environ['DAGSHUB_USERNAME'],
+            repo_name=os.environ['DAGSHUB_REPO'],
             mlflow=True,
+            token=os.environ['DAGSHUB_TOKEN'],
         )
         print(
             f"[Train] MLflow tracking via DagsHub: {DAGSHUB_USERNAME}/{DAGSHUB_REPO}")
