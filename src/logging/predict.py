@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-import numpy as np
 import pandas as pd
 import joblib
 import sys
@@ -11,40 +10,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(
 load_dotenv()
 
 MODEL_PATH = os.getenv("MODEL_PATH", "models/churn_model.joblib")
-
-
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-
-    df["ChargePerTenure"] = df["MonthlyCharges"] / (df["tenure"] + 1)
-
-    service_cols = [
-        "PhoneService", "MultipleLines", "InternetService",
-        "OnlineSecurity", "OnlineBackup", "DeviceProtection",
-        "TechSupport", "StreamingTV", "StreamingMovies"
-    ]
-    df["TotalServices"] = df[service_cols].apply(
-        lambda row: sum(1 for v in row if v not in [
-                        "No", "No internet service", "No phone service"]),
-        axis=1
-    )
-
-    df["IsLongTermContract"] = (df["Contract"] != "Month-to-month").astype(int)
-    df["HighMonthlyCharge"] = (df["MonthlyCharges"] > 64.76).astype(int)
-
-    df["TenureGroup"] = pd.cut(
-        df["tenure"],
-        bins=[0, 12, 24, 48, 72],
-        labels=[0, 1, 2, 3],
-        include_lowest=True
-    ).astype(int)
-
-    df["HighRiskCombo"] = (
-        (df["Contract"] == "Month-to-month") &
-        (df["PaymentMethod"] == "Electronic check")
-    ).astype(int)
-
-    return df
 
 
 def load_artifacts():
@@ -60,10 +25,8 @@ def predict(input_data: dict) -> dict:
 
     df = pd.DataFrame([input_data])
 
-    df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
-    df["TotalCharges"] = df["TotalCharges"].fillna(0)
-
-    df = engineer_features(df)
+    df["TotalCharges"] = pd.to_numeric(
+        df["TotalCharges"], errors="coerce").fillna(0)
 
     for col, le in encoders.items():
         if col in df.columns:
