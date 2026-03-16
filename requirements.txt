@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn
+mlflow
+dagshub
+fastapi
+uvicorn
+gradio
+python-dotenv
+pydantic
+joblib
+pytest
+httpx
