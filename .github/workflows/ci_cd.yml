@@ -64,10 +64,10 @@ jobs:
         run: python data/download_data.py
 
       - name: Train model
-        run: python -m src.train
+        run: python -m src.engineering.train
 
       - name: Evaluate model
-        run: python -m src.evaluate
+        run: python -m src.logging.evaluate
 
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
