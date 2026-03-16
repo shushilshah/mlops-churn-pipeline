@@ -77,7 +77,6 @@ def setup_mlflow():
             repo_owner=os.environ['DAGSHUB_USERNAME'],
             repo_name=os.environ['DAGSHUB_REPO'],
             mlflow=True,
-            token=os.environ['DAGSHUB_TOKEN'],
         )
         print(
             f"[Train] MLflow tracking via DagsHub: {DAGSHUB_USERNAME}/{DAGSHUB_REPO}")
