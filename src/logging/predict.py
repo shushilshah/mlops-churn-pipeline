@@ -12,7 +12,6 @@ MODEL_PATH = os.getenv("MODEL_PATH", "models/churn_model.joblib")
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Must match exactly what preprocess.py does during training."""
     df = df.copy()
 
     df["ChargePerTenure"] = df["MonthlyCharges"] / (df["tenure"] + 1)
@@ -28,7 +27,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     df["IsLongTermContract"] = (df["Contract"] != "Month-to-month").astype(int)
-    df["HighMonthlyCharge"] = (df["MonthlyCharges"] > 64.76).astype(int)  # training median
+    df["HighMonthlyCharge"] = (df["MonthlyCharges"] > 64.76).astype(int)
 
     df["TenureGroup"] = pd.cut(
         df["tenure"],
@@ -46,7 +45,6 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_artifacts():
-    """Load model, scaler, encoders, and feature names."""
     model = joblib.load(MODEL_PATH)
     scaler = joblib.load("models/scaler.joblib")
     encoders = joblib.load("models/encoders.joblib")
@@ -55,22 +53,15 @@ def load_artifacts():
 
 
 def predict(input_data: dict) -> dict:
-    """
-    Run prediction on a single customer record.
-    Applies same feature engineering as training pipeline.
-    """
     model, scaler, encoders, feature_names = load_artifacts()
 
     df = pd.DataFrame([input_data])
 
-    # Fix TotalCharges
     df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
     df["TotalCharges"] = df["TotalCharges"].fillna(0)
 
-    # Apply same feature engineering as training
     df = engineer_features(df)
 
-    # Encode categorical columns
     for col, le in encoders.items():
         if col in df.columns:
             try:
@@ -78,13 +69,9 @@ def predict(input_data: dict) -> dict:
             except ValueError:
                 df[col] = 0
 
-    # Ensure correct feature order
     df = df[feature_names]
-
-    # Scale
     X_scaled = scaler.transform(df)
 
-    # Predict
     prediction = int(model.predict(X_scaled)[0])
     probability = float(model.predict_proba(X_scaled)[0][1])
 
@@ -103,7 +90,6 @@ def predict(input_data: dict) -> dict:
 
 
 def get_sample_input() -> dict:
-    """Returns a sample customer record for testing."""
     return {
         "gender": "Male",
         "SeniorCitizen": 0,
@@ -128,8 +114,7 @@ def get_sample_input() -> dict:
 
 
 if __name__ == "__main__":
-    sample = get_sample_input()
-    result = predict(sample)
+    result = predict(get_sample_input())
     print("\n[Predict] Sample prediction:")
     for k, v in result.items():
         print(f"  {k}: {v}")
