@@ -71,7 +71,7 @@ MODELS = {
 
 
 def setup_mlflow():
-    if DAGSHUB_USERNAME and DAGSHUB_TOKEN and DAGSHUB_USERNAME != "your_dagshub_username":
+    if DAGSHUB_USERNAME and DAGSHUB_TOKEN and DAGSHUB_USERNAME != "shushilshah":
         os.environ["DAGSHUB_TOKEN"] = DAGSHUB_TOKEN
         dagshub.init(
             repo_owner=os.environ['DAGSHUB_USERNAME'],
