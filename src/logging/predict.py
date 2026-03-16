@@ -1,12 +1,48 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import joblib
-import numpy as np
 import pandas as pd
-import os
+import numpy as np
 from dotenv import load_dotenv
 
 load_dotenv()
 
 MODEL_PATH = os.getenv("MODEL_PATH", "models/churn_model.joblib")
+
+
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Must match exactly what preprocess.py does during training."""
+    df = df.copy()
+
+    df["ChargePerTenure"] = df["MonthlyCharges"] / (df["tenure"] + 1)
+
+    service_cols = [
+        "PhoneService", "MultipleLines", "InternetService",
+        "OnlineSecurity", "OnlineBackup", "DeviceProtection",
+        "TechSupport", "StreamingTV", "StreamingMovies"
+    ]
+    df["TotalServices"] = df[service_cols].apply(
+        lambda row: sum(1 for v in row if v not in ["No", "No internet service", "No phone service"]),
+        axis=1
+    )
+
+    df["IsLongTermContract"] = (df["Contract"] != "Month-to-month").astype(int)
+    df["HighMonthlyCharge"] = (df["MonthlyCharges"] > 64.76).astype(int)  # training median
+
+    df["TenureGroup"] = pd.cut(
+        df["tenure"],
+        bins=[0, 12, 24, 48, 72],
+        labels=[0, 1, 2, 3],
+        include_lowest=True
+    ).astype(int)
+
+    df["HighRiskCombo"] = (
+        (df["Contract"] == "Month-to-month") &
+        (df["PaymentMethod"] == "Electronic check")
+    ).astype(int)
+
+    return df
 
 
 def load_artifacts():
@@ -21,8 +57,7 @@ def load_artifacts():
 def predict(input_data: dict) -> dict:
     """
     Run prediction on a single customer record.
-    input_data: dict of raw feature values (same schema as training data)
-    Returns: dict with prediction, probability, and risk level
+    Applies same feature engineering as training pipeline.
     """
     model, scaler, encoders, feature_names = load_artifacts()
 
@@ -30,7 +65,10 @@ def predict(input_data: dict) -> dict:
 
     # Fix TotalCharges
     df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
-    df["TotalCharges"].fillna(0, inplace=True)
+    df["TotalCharges"] = df["TotalCharges"].fillna(0)
+
+    # Apply same feature engineering as training
+    df = engineer_features(df)
 
     # Encode categorical columns
     for col, le in encoders.items():
