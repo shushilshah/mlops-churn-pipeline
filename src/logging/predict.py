@@ -1,10 +1,12 @@
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-import joblib
-import pandas as pd
-import numpy as np
 from dotenv import load_dotenv
+import numpy as np
+import pandas as pd
+import joblib
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))))
+
 
 load_dotenv()
 
@@ -22,7 +24,8 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         "TechSupport", "StreamingTV", "StreamingMovies"
     ]
     df["TotalServices"] = df[service_cols].apply(
-        lambda row: sum(1 for v in row if v not in ["No", "No internet service", "No phone service"]),
+        lambda row: sum(1 for v in row if v not in [
+                        "No", "No internet service", "No phone service"]),
         axis=1
     )
 
