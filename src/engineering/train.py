@@ -72,6 +72,7 @@ MODELS = {
 
 def setup_mlflow():
     if DAGSHUB_USERNAME and DAGSHUB_TOKEN and DAGSHUB_USERNAME != "your_dagshub_username":
+        os.environ["DAGSHUB_TOKEN"] = DAGSHUB_TOKEN
         dagshub.init(
             repo_owner=DAGSHUB_USERNAME,
             repo_name=DAGSHUB_REPO,
@@ -81,8 +82,8 @@ def setup_mlflow():
             f"[Train] MLflow tracking via DagsHub: {DAGSHUB_USERNAME}/{DAGSHUB_REPO}")
     else:
         mlflow.set_tracking_uri("mlruns")
+        mlflow.set_experiment("churn-prediction")
         print("[Train] MLflow tracking locally")
-    mlflow.set_experiment("churn-prediction-v2")
 
 
 def train_and_log(model_name, model, X_train, X_test, y_train, y_test, feature_names):
